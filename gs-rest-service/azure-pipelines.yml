@@ -1,0 +1,100 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  imageName: 'gs-rest-service'
+  imageTag: '$(build.buildId)'
+  fullImageName: '$(imageName):$(imageTag)'
+  registryName: 'avengersx'
+  containerRegistry: 'avengersx.azurecr.io'
+  acrServiceConnection: 'azurecr-sc'
+  k8sServiceConnection: 'avengersx-aks-sc'
+  k8sResourceGroup: 'avengersx-aks'
+  k8sCluster: 'avengersx-aks'
+
+  
+steps:
+- script: echo Hello, world!
+  displayName: 'Run a one-line script'
+
+- script: |
+    echo Add other tasks to build, test, and deploy your project.
+    echo See https://aka.ms/yaml
+  displayName: 'Run a multi-line script'
+
+- task: Gradle@2
+  inputs:
+    workingDirectory: '$(system.defaultWorkingDirectory)/gs-rest-service'
+    gradleWrapperFile: '$(system.defaultWorkingDirectory)/gs-rest-service/gradlew'
+    gradleOptions: '-Xmx1024m'
+    javaHomeOption: 'JDKVersion'
+    jdkVersionOption: '1.8'
+    jdkArchitectureOption: 'x64'
+    publishJUnitResults: false
+    testResultsFiles: '**/TEST-*.xml'
+    tasks: 'build'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(system.defaultWorkingDirectory)/gs-rest-service/build/libs/'
+    Contents: '*.jar'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
+
+- task: Docker@1
+  displayName: 'Containerize the application'
+  inputs:
+    azureSubscriptionEndpoint: $(acrServiceConnection)
+    azureContainerRegistry: $(containerRegistry)
+    dockerFile: '**/gs-rest-service/dockerfile'
+    imageName: '$(fullImageName)'
+    includeLatestTag: true
+
+- task: Docker@1
+  displayName: 'Push image'
+  inputs:
+    azureSubscriptionEndpoint: $(acrServiceConnection)
+    azureContainerRegistry: $(containerRegistry)
+    command: 'Push an image'
+    imageName: '$(fullImageName)'
+ 
+- task: Docker@1
+  displayName: 'Push latest image'
+  inputs:
+    azureSubscriptionEndpoint: $(acrServiceConnection)
+    azureContainerRegistry: $(containerRegistry)
+    command: 'Push an image'
+    imageName: '$(imageName):latest'
+
+- task: HelmInstaller@1
+  inputs:
+    helmVersionToInstall: '2.13.0'
+
+- task: HelmDeploy@0
+  displayName: Helm Package
+  inputs:
+    azureSubscriptionEndpoint: $(k8sServiceConnection)
+    azureResourceGroup: $(k8sResourceGroup)
+    kubernetesCluster: $(k8sCluster)
+    command: package
+    chartPath: '**/gs-rest-service/charts'
+
+- task: AzureCLI@1
+  displayName: 'Helm Push'
+  inputs:
+    azureSubscription: 'azurecr-sc'
+    scriptLocation: 'inlineScript'
+    inlineScript: 'az acr helm push -n $(registryName) $(build.artifactStagingDirectory)/$(imageName)-*.tgz --force'
