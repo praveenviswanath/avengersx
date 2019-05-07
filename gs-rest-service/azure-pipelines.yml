@@ -90,7 +90,7 @@ steps:
     azureResourceGroup: $(k8sResourceGroup)
     kubernetesCluster: $(k8sCluster)
     command: package
-    chartPath: '**/gs-rest-service/charts'
+    chartPath: '**/charts/gs-rest-service'
 
 - task: AzureCLI@1
   displayName: 'Helm Push'
