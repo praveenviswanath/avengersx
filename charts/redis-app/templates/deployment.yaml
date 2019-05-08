@@ -11,6 +11,6 @@ spec:
     spec:
       containers:
       - name: {{.Release.Name}}
-        image: 'avengersx.azurecr.io/gs-rest-service:latest'
+        image: 'avengersx.azurecr.io/redis-app:latest'
         ports:
         - containerPort: 80
