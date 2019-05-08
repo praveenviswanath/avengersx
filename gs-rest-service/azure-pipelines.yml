@@ -60,23 +60,6 @@ steps:
     ArtifactName: 'drop'
     publishLocation: 'Container'
 
-- task: Docker@1
-  displayName: 'Containerize the application'
-  inputs:
-    azureSubscriptionEndpoint: $(acrServiceConnection)
-    azureContainerRegistry: $(containerRegistry)
-    dockerFile: '**/gs-rest-service/dockerfile'
-    imageName: '$(fullImageName)'
-    includeLatestTag: true
-
-- task: Docker@1
-  displayName: 'Push image'
-  inputs:
-    azureSubscriptionEndpoint: $(acrServiceConnection)
-    azureContainerRegistry: $(containerRegistry)
-    command: 'Push an image'
-    imageName: '$(fullImageName)'
-
 - task: HelmInstaller@1
   inputs:
     helmVersionToInstall: '2.13.0'
@@ -96,3 +79,28 @@ steps:
     azureSubscription: 'azurecr-sc'
     scriptLocation: 'inlineScript'
     inlineScript: 'az acr helm push -n $(registryName) $(build.artifactStagingDirectory)/$(imageName)-*.tgz --force'
+    
+- task: Docker@1
+  displayName: 'Containerize the application'
+  inputs:
+    azureSubscriptionEndpoint: $(acrServiceConnection)
+    azureContainerRegistry: $(containerRegistry)
+    dockerFile: '**/gs-rest-service/dockerfile'
+    imageName: '$(fullImageName)'
+    includeLatestTag: true
+
+- task: Docker@1
+  displayName: 'Push image'
+  inputs:
+    azureSubscriptionEndpoint: $(acrServiceConnection)
+    azureContainerRegistry: $(containerRegistry)
+    command: 'Push an image'
+    imageName: '$(fullImageName)'
+    
+- task: Docker@1
+  displayName: 'Push image'
+  inputs:
+    azureSubscriptionEndpoint: $(acrServiceConnection)
+    azureContainerRegistry: $(containerRegistry)
+    command: 'Push an image'
+    imageName: '$(fullImageName):latest'
