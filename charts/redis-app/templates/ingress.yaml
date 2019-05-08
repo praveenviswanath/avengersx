@@ -11,7 +11,7 @@ spec:
   rules:
   - http:
       paths:
-      - path: /greeting
+      - path: /coffees
         backend:
           serviceName: {{.Release.Name}}
           servicePort: 80
