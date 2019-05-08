@@ -3,8 +3,14 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+# specific path build
 trigger:
-- master
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - gs-rest-service/*
 
 pool:
   vmImage: 'ubuntu-latest'
