@@ -102,4 +102,4 @@ steps:
     azureSubscriptionEndpoint: $(acrServiceConnection)
     azureContainerRegistry: $(containerRegistry)
     command: 'Push an image'
-    imageName: '$(fullImageName):latest'
+    imageName: '$(imageName):latest'

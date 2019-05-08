@@ -1,6 +1,8 @@
 HELP.md
 /gs-rest-service/.gradle/
 /gs-rest-service/build/
+/redis-app/.gradle/
+/redis-app/build/
 
 ### STS ###
 .apt_generated
